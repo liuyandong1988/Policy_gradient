@@ -6,17 +6,18 @@ def play(env, actor):
     """
     play game with model.
     """
-    print('play...')
-    observation = env.reset()
-    reward_sum = 0
-    while True:
-        env.render()
-        action = actor(np.array([observation], dtype=np.float32))[0]
-        observation, reward, done, _ = env.step(action)
-        reward_sum += reward
-        if done:
-            print("Reward for this episode was: {}".format(reward_sum))
-            break
+    for _ in range(3):
+        print('play...')
+        observation = env.reset()
+        reward_sum = 0
+        while True:
+            env.render()
+            action = actor(np.array([observation], dtype=np.float32))[0]
+            observation, reward, done, _ = env.step(action)
+            reward_sum += reward
+            if done:
+                print("Reward for this episode was: {}".format(reward_sum))
+                break
 
     input('Game over !')
     env.close()

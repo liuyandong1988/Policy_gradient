@@ -13,3 +13,9 @@ DDPG实现了Pendulum Game。DDPG采用了A-C架构，但和actor-critic在各�
 
 ## 5. [Twin Delay DDPG (TD3)](https://github.com/liuyandong1988/Policy_gradient/tree/master/TD3)
 TD3 玩Pendulum-v0游戏。TD3是改进版的DDPG：（1）增大了两个critic网络，克服了DDPG对行为Q值评估过高的缺点； （2） 延时更新actor网络，使网络寻优action过程变得更稳定； （3）critic更新Q值对行为加入噪声，target policy smoothing regularization，在一个区域中的行为，使得critic网络更稳健。 
+
+## 6. [asynchronous Advantage Actor-Critic (A3C)](https://github.com/liuyandong1988/Policy_gradient/tree/master/A3C)
+A3C是Actor-critic和PPO方法的继承和改进。解决了sample efficiency的问题。使用了分布式的 Global network -- worker 架构。Worker独立完成和场景的交互，训练网络，将梯度上传到global network。 Global network汇集所有worker 网络的梯度，训练网络，并将网络参数分发给每个worker。Global network和worker network有相同的网络结构。没有从本质上提高样本的利用率，只是采用多线程分布式的思想得到了更多的训练样本。
+
+## 7. [DPPO](https://github.com/liuyandong1988/Policy_gradient/tree/master/DPPO)
+DPPO是类似于A3C的分布式架构。Worker端给global network直接提供训练数据， Global端使用PPO方式训练网络。用于产生数据的worker端策略和目标策略不是同一个策略，DPPO结构是off-policy的。

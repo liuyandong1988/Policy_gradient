@@ -63,8 +63,8 @@ GAME = 'BipedalWalker-v3'  # BipedalWalkerHardcore-v2   BipedalWalker-v2  LunarL
 LOG_DIR = './log'  # the log file
 N_WORKERS = multiprocessing.cpu_count()  # number of workers accroding to number of cores in cpu
 print("n_workers:",N_WORKERS)
-# N_WORKERS = 2     # manually set number of workers
-MAX_GLOBAL_EP = 800  # number of training episodes
+N_WORKERS = 1     # manually set number of workers
+MAX_GLOBAL_EP = 1000  # number of training episodes
 GLOBAL_NET_SCOPE = 'Global_Net'
 UPDATE_GLOBAL_ITER = 10  # update global policy after several episodes
 GAMMA = 0.99  # reward discount factor
@@ -193,9 +193,9 @@ class Worker(object):
             ep_r = 0                                                    #统计ep的总reward
             while True:
                 # visualize Worker_0 during training
-                # if self.name == 'Worker_0' and total_step % 1 == 0:    #worker_0,每30步渲染一次
-                #     # pass
-                #     self.env.render()
+                if self.name == 'Worker_0' and total_step % 1 == 0:    #worker_0,每30步渲染一次
+                    # pass
+                    self.env.render()
                 s = s.astype('float32')                                 # double to float
                 a = self.AC.choose_action(s)                            # 选择动作
                 s_, r, done, _info = self.env.step(a)                   # 和环境互动

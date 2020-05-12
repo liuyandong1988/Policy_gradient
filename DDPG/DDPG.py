@@ -107,22 +107,24 @@ class DDPG():
             ep_reward = 0  # 记录当前EP的reward
             ec_loss, ea_loss = list(), list()
             for j in range(MAX_EP_STEPS):
-                if self.pointer < MEMORY_CAPACITY:
-                    print('Run data for buffer ... %d'%i)
+                # if self.pointer < MEMORY_CAPACITY:
+                #     print('Run data for buffer ... %d'%i)
                 # 2.根据观测选择动作
                 a = self.choose_action(s)  # 这里很简单，直接用actor估算出a动作
+                # --- 策略探索 --- #
                 # 为了能保持开发，这里用了另外一种方式增加探索。
                 # 因此需要需要以a为均值，VAR为标准差，建立正态分布，再从正态分布采样出a
-                # 因为a是均值，所以a的概率是最大的。但a相对其他概率由多大，是靠VAR调整。这里我们其实可以增加更新VAR，动态调整a的确定性
+                # 因为a是均值，所以a的概率是最大的。但a相对其他概率由多大，是靠VAR调整。
+                # 这里我们其实可以增加更新VAR，动态调整a的确定性
                 # 然后进行裁剪
                 new_var = VAR * (1-i/MAX_EPISODES)
-                if new_var < 0.1:
-                    new_var = 0.1
+                if new_var < 0.05:
+                    new_var = 0.05
                 a = np.clip(np.random.normal(a, new_var), -2, 2)
                 # 3.与环境进行互动
                 s_, r, done, info = self.env.step(a)
                 # 4.保存s，a，r，s_
-                self.store_transition(s, a, r / 10, s_)
+                self.store_transition(s, a, r, s_)
                 # 5.开始学习
                 if self.pointer > MEMORY_CAPACITY:
                     c_loss, a_loss = self.learn()
@@ -138,18 +140,18 @@ class DDPG():
                     c_loss_record.append(np.mean(np.array(ec_loss)))
                     a_loss_record.append(np.mean(np.array(ea_loss)))
 
-            if reward_buffer:
-                plt.ion()
-                plt.cla()
-                plt.title('DDPG')
-                plt.plot(np.array(range(len(reward_buffer))) * TEST_PER_EPISODES, reward_buffer)  # plot the episode vt
-                plt.xlabel('episode steps')
-                plt.ylabel('normalized state-action value')
-                plt.ylim(-2000, 0)
-                plt.show()
-                plt.pause(0.1)
-        plt.ioff()
-        plt.show()
+        #     if reward_buffer:
+        #         plt.ion()
+        #         plt.cla()
+        #         plt.title('DDPG')
+        #         plt.plot(np.array(range(len(reward_buffer))) * TEST_PER_EPISODES, reward_buffer)  # plot the episode vt
+        #         plt.xlabel('episode steps')
+        #         plt.ylabel('normalized state-action value')
+        #         plt.ylim(-2000, 0)
+        #         plt.show()
+        #         plt.pause(0.1)
+        # plt.ioff()
+        # plt.show()
         print('\nRunning time: ', time.time() - t0)
         np.save('history/reward.npy', np.array(reward_buffer))
         np.save('history/closs.npy', np.array(c_loss_record))
@@ -174,7 +176,7 @@ class DDPG():
         with tf.GradientTape() as tape:
             a_ = self.actor_target(bs_)
             q_ = self.critic_target([bs_, a_])
-            y = br + GAMMA * q_
+            y = br + GAMMA * q_   # y label
             q = self.critic([bs, ba])
             td_error = tf.losses.mean_squared_error(y, q)
         c_grads = tape.gradient(td_error, self.critic.trainable_weights)
@@ -188,7 +190,10 @@ class DDPG():
             a_loss = -tf.reduce_mean(q)  # 负号，是梯度上升！也就是离目标会越来越远的，就是越来越大。
         a_grads = tape.gradient(a_loss, self.actor.trainable_weights)
         self.actor_opt.apply_gradients(zip(a_grads, self.actor.trainable_weights))
+
+        # target model soft update
         self.ema_update()
+
         return td_error, a_loss
 
 

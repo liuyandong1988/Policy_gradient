@@ -24,4 +24,5 @@ def test_main():
     ddpg.train()
 
 if __name__ == '__main__':
+    print('TensorFlow:', tf.__version__)
     test_main()

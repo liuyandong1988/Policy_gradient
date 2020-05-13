@@ -214,7 +214,8 @@ class DDPG():
         :return: act
         """
         obs = np.array([s], dtype=np.float32)
-        return self.actor(obs)[0]
+        action = self.actor(obs)[0]
+        return action
 
     # 保存s，a，r，s_
     def store_transition(self, s, a, r, s_):
